@@ -1,0 +1,72 @@
+version: "3"
+
+services:
+  db:
+    image: postgres:11.1
+    environment:
+      POSTGRES_PASSWORD: django
+      POSTGRES_DB: {{cookiecutter.application_name}}
+    volumes:
+      - dev_data:/var/lib/postgresql/data
+  django:
+    build: .
+    environment:
+      DEBUG: "true"
+      DATABASE_URL: postgres://postgres:django@db:5432/{{cookiecutter.application_name}}
+      SECRET_KEY: a-secret-key
+      PORT: 8799
+    env_file:
+      - .env
+    command: python manage.py runserver 0.0.0.0:80
+    working_dir: /app/code
+    volumes:
+      - .:/app/code
+      - ~/.ipython:/root/.ipython:cached
+      - ./data/:/tmp/data/:cached
+      - ./dev-creds.json:/tmp/keys/creds.json:ro
+    ports:
+      - "8317:80"
+    depends_on:
+      - db
+
+  # the following are used to connect to GCP instances locally.
+  # use with ./bin/cloudshell.py
+  clouddb:
+    image: gcr.io/cloudsql-docker/gce-proxy:1.16
+    command: /cloud_sql_proxy -instances=${DB_INSTANCE:-null}=tcp:0.0.0.0:5432 -credential_file=/config
+    volumes:
+      - ${GOOGLE_APPLICATION_CREDENTIALS:-/dev/null}:/config:ro
+
+  cloudshell:
+    image: gcr.io/${GOOGLE_CLOUD_PROJECT:-{{cookiecutter.project_name}}}/{{cookiecutter.application_name}}-app
+    environment:
+      DATABASE_URL: postgres://${DB_USER:-django}:${DB_PASSWORD:-pass}@clouddb:5432/${DB_NAME:-django}
+      SECRET_KEY: unused
+      GOOGLE_APPLICATION_CREDENTIALS: /tmp/keys/creds.json
+      GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-}
+    command: bash
+    stdin_open: true
+    tty: true
+    volumes:
+      - ~/.ipython:/root/.ipython:cached
+      - ${GOOGLE_APPLICATION_CREDENTIALS:-/dev/null}:/tmp/keys/creds.json:ro
+      - ./data/:/tmp/data/:cached
+      - ./:/app/local/:ro
+    depends_on:
+      - clouddb
+
+  cloudpsql:
+    image: postgres:11.1
+    command: bash -c "sleep 2 ; psql" # let the cloudshell start.
+    stdin_open: true
+    tty: true
+    environment:
+      PGPASSWORD: ${DB_PASSWORD:-pass}
+      PGHOST: clouddb
+      PGDATABASE: ${DB_NAME:-django}
+      PGUSER: ${DB_USER:-django}
+    depends_on:
+      - clouddb
+
+volumes:
+  dev_data:

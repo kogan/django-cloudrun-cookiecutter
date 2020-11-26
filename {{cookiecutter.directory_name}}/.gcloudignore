@@ -1,0 +1,3 @@
+.git
+#!include:.gitignore
+testdata/

@@ -1,0 +1,44 @@
+[tool.poetry]
+name = "{{cookiecutter.application_name}}"
+version = "0.0.1"
+description = "Empty application"
+authors = []
+
+[tool.poetry.dependencies]
+python = "^3.8"
+google-api-core = "^1.14.2"
+psycopg2-binary = "^2.8.5"
+waitress = "^1.4.3"
+google-cloud-secret-manager = "^0.2.0"
+django = "^2.2.12"
+django-environ = "^0.4.5"
+django-extensions = "^2.2.9"
+whitenoise = "^5.0.1"
+ipython = "^7.13.0"
+django-cloudtask = "^0.1.4"
+django-debug-toolbar = "^3.1.1"
+
+
+[tool.poetry.dev-dependencies]
+black = "^19.10b0"
+ipdb = "^0.13.2"
+pre-commit = "^2.2.0"
+isort = "^4.3.21"
+flake8 = "^3.7.9"
+flake8-builtins = "^1.5.2"
+flake8-comprehensions = "^3.2.2"
+flake8-isort = "^3.0.0"
+flake8-blind-except = "^0.1.1"
+flake8-debugger = "^3.2.1"
+flake8-pep3101 = "^1.3.0"
+mypy = "^0.770"
+ptvsd = "^4.3.2"
+pytest = "^5.4.2"
+pytest-cov = "^2.9.0"
+pytest-django = "^3.9.0"
+pytest-factoryboy = "^2.0.3"
+time-machine = "^1.2.1"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

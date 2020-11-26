@@ -1,0 +1,44 @@
+steps:
+    - id: 'build and push'
+      name: 'gcr.io/kaniko-project/executor:latest'
+      args:
+        - --destination=gcr.io/$PROJECT_ID/{{cookiecutter.application_name}}-app
+        - --cache=true
+        - --build-arg
+        - PRODUCTION=1
+    - id: 'pre-deploy'
+      name: 'gcr.io/google-appengine/exec-wrapper'
+      args:
+        - -i
+        - gcr.io/$PROJECT_ID/{{cookiecutter.application_name}}-app
+        - -s
+        - $PROJECT_ID:{{cookiecutter.gcp_region}}:{{cookiecutter.application_name}}-db
+        - -e
+        - PROJECT_ID=$PROJECT_ID
+        - -e
+        - CURRENT_HOST=${_CURRENT_HOST}
+        - --
+        - sh
+        - .cloudbuild/pre_deploy.sh
+    - id: 'deploy'
+      name: 'gcr.io/cloud-builders/gcloud'
+      args:
+        - run
+        - deploy
+        - django-app
+        - --platform
+        - managed
+        - --timeout
+        - "30"
+        - --concurrency
+        - "5"
+        - --max-instances
+        - "20"
+        -  --region
+        - {{cookiecutter.gcp_region}}
+        - --image
+        - gcr.io/$PROJECT_ID/{{cookiecutter.application_name}}-app
+substitutions:
+  _CURRENT_HOST: localhost
+options:
+  substitution_option: 'ALLOW_LOOSE'
