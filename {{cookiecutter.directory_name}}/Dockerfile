@@ -50,4 +50,4 @@ ENV PATH "/app/.venv/bin:${PATH}"
 WORKDIR /app/code
 
 RUN python manage.py collectstatic --noinput
-CMD waitress-serve --threads=5 --listen=*:$PORT application.wsgi:application
+CMD waitress-serve --threads=5 --listen=*:$PORT {{cookiecutter.application_name}}.wsgi:application
