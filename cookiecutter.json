@@ -1,6 +1,6 @@
 {
   "directory_name": "my-application",
   "application_name": "app",
-  "project_name": "my-application",
+  "project_name": "my-gcp-project-id",
   "gcp_region": "asia-northeast1"
 }
