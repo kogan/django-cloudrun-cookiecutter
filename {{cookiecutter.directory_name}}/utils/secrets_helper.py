@@ -1,6 +1,6 @@
 import google.auth
 from google.auth.exceptions import DefaultCredentialsError
-from google.cloud import secretmanager_v1beta1 as sm
+from google.cloud import secretmanager as sm
 
 
 def access_secrets(secret_keys):
