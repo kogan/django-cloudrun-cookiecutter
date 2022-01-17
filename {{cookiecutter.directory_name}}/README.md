@@ -10,6 +10,7 @@ It's recommended to read the above first to gain an understanding of how the dep
 
 1. Create a project (`{{cookiecutter.project_name}}`) via the Google Cloud Console web interface. Take note of the project id, then run the following to set up the account:
 
+   Note: Please avoid using SDK as applying IAM policies using SDK does not work.
 ```
 export PROJECT_ID={{cookiecutter.project_name}}
 export REGION={{cookiecutter.gcp_region}}
@@ -58,19 +59,32 @@ gcloud secrets add-iam-policy-binding SECRET_KEY \
   --member serviceAccount:$CLOUDRUN_SA \
   --role roles/secretmanager.secretAccessor
   
-  gcloud secrets add-iam-policy-binding SECRET_KEY \
+gcloud secrets add-iam-policy-binding SECRET_KEY \
   --member serviceAccount:$CLOUDBUILD_SA \
   --role roles/secretmanager.secretAccessor
+
+#This may through error in cli
+#Alternatively add role [Cloud Scheduler Viewer] via iam-admin interface
+gcloud secrets add-iam-policy-binding SECRET_KEY \
+  --member serviceAccount:$CLOUDBUILD_SA \
+  --role roles/cloudscheduler.viewer
+
+#This may through error in cli
+#Alternatively add role [Service Account User] via iam-admin interface
+gcloud secrets add-iam-policy-binding SECRET_KEY \
+  --member serviceAccount:$CLOUDBUILD_SA \
+  --role roles/iam.serviceAccountUser
+  
 gcloud secrets add-iam-policy-binding DATABASE_URL \
   --member serviceAccount:$CLOUDRUN_SA \
   --role roles/secretmanager.secretAccessor
   
-  gcloud secrets add-iam-policy-binding DATABASE_URL \
+gcloud secrets add-iam-policy-binding DATABASE_URL \
   --member serviceAccount:$CLOUDBUILD_SA \
   --role roles/secretmanager.secretAccessor
 ```
 
-3. Navigate to [https://console.cloud.google.com/sql/create-instance-postgres](https://console.cloud.google.com/sql/create-instance-postgres) to create the instance of desired capacity, then run the following:
+2. Navigate to [https://console.cloud.google.com/sql/create-instance-postgres](https://console.cloud.google.com/sql/create-instance-postgres) to create the instance of desired capacity, then run the following:
 
 ```
 gcloud sql databases create $DATABASE_NAME \
@@ -82,13 +96,13 @@ CREATE USER "django" WITH PASSWORD '<DBPASSWORD>';
 GRANT ALL PRIVILEGES ON DATABASE "{{cookiecutter.application_name}}" TO "django";
 ```
 
-4. Deploy the application for the first time:
-
+3. Deploy the application for the first time, using the commands below.:
 ```
-gcloud builds submit --tag gcr.io/$PROJECT_ID/$SERVICE_NAME .
+# Wont run DB migrations, check on going deployment for using config file
+gcloud builds submit --tag gcr.io/$PROJECT_ID/$SERVICE_NAME
 ```
 
-5. Navigate to https://console.cloud.google.com/run and follow the prompts.
+4. Navigate to https://console.cloud.google.com/run and follow the prompts.
 Be sure to choose the right region and service account, and to connect the DB.
 
 Once provisioned, you’ll need to update the env var CURRENT_HOST to the host it just generated.
@@ -97,6 +111,9 @@ You’re done!
 ## Ongoing deployment
 
 There's a configuration file in `.cloudbuild/deploy.yaml` which builds, pushes, migrates, and deploys.
+```
+gcloud builds submit --config .cloudbuild/deploy.yaml
+```
 Follow the guide in [https://github.com/GoogleCloudPlatform/django-demo-app-unicodex](https://github.com/GoogleCloudPlatform/django-demo-app-unicodex) to learn how to automate this!
 
 ## First time setup
